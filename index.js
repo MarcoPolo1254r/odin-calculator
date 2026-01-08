@@ -14,16 +14,16 @@ const operatorMap = {
 
 const operations = {
     sum(a,b) {
-        return (a+b);
+        return (a+b).toFixed(2);
     },
     subtract(a,b) {
-        return (a-b);
+        return (a-b).toFixed(2);
     },
     multiply(a,b) {
-        return (a*b);
+        return (a*b).toFixed(2);
     },
     divide(a,b){
-        return b ===0 ? 'INVALID' : (a/b);
+        return b ===0 ? 'INVALID' : (a/b).toFixed(2);
     }
 }
 
@@ -43,7 +43,7 @@ function fillingDisplay(e){
     }
     if (e.target.textContent === '='){
         const userInput = display.textContent;
-        let userInputArray = userInput.match(/\d+|[+\-*/]/g)
+        let userInputArray = userInput.match(/\d+(\.\d+)?|[+\-*/]/g)
         .map(v => isNaN(v) ? v : Number(v));
         firstNum = userInputArray [0];
         operand = userInputArray [1];
