@@ -14,16 +14,16 @@ const operatorMap = {
 
 const operations = {
     sum(a,b) {
-        return (a+b).toFixed(3);
+        return (a+b);
     },
     subtract(a,b) {
-        return (a-b).toFixed(3);
+        return (a-b);
     },
     multiply(a,b) {
-        return (a*b).toFixed(3);
+        return (a*b);
     },
     divide(a,b){
-        return b ===0 ? "Invalid" : (a/b).toFixed(3);
+        return b ===0 ? 'INVALID' : (a/b);
     }
 }
 
@@ -43,12 +43,13 @@ function fillingDisplay(e){
     }
     if (e.target.textContent === '='){
         const userInput = display.textContent;
-        const userInputArray = userInput.match(/\d+|[+\-*/]/g)
+        let userInputArray = userInput.match(/\d+|[+\-*/]/g)
         .map(v => isNaN(v) ? v : Number(v));
         firstNum = userInputArray [0];
         operand = userInputArray [1];
         secondNum = userInputArray [2];
-        display.textContent = executeOperation (firstNum,operand,secondNum);         
+        display.textContent = executeOperation (firstNum,operand,secondNum);
+        userInputArray = [];         
         return 
     } 
     display.textContent += e.target.textContent
@@ -56,7 +57,6 @@ function fillingDisplay(e){
 
 function executeOperation (a,operator,b) {
     const method = operatorMap[operator];
-    return operations[method](a,b);
+    const solution = operations[method](a,b);
+    return solution;
 }
-
-console.log(operations.divide(0.3,1.92))
