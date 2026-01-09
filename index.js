@@ -1,62 +1,139 @@
-let firstNum = 0;
-let secondNum = 0;
-let operand = '';
-
-const buttons = document.querySelector('.buttons');
-const display = document.querySelector('.display')
-const buttonTextContent = ['7','8','9','+','4','5','6','-','1','2','3','*','CLEAR','0','=','/'];
-const operatorMap = {
-  "+": "sum",
-  "-": "subtract",
-  "*": "multiply",
-  "/": "divide",
+// State object to hold the calculator's data
+const state = {
+  displayValue: "0",
+  firstNum: null,
+  waitingForSecondNum: false,
+  operand: null,
 };
 
+// DOM elements
+const display = document.querySelector(".display");
+const buttons = document.querySelector(".buttons");
+
+// Button layout
+const buttonTextContent = [
+  "7", "8", "9", "+",
+  "4", "5", "6", "-",
+  "1", "2", "3", "*",
+  "CLEAR", "0", "=", "/",
+];
+
+// Operations
 const operations = {
-    sum(a,b) {
-        return (a+b).toFixed(2);
-    },
-    subtract(a,b) {
-        return (a-b).toFixed(2);
-    },
-    multiply(a,b) {
-        return (a*b).toFixed(2);
-    },
-    divide(a,b){
-        return b ===0 ? 'INVALID' : (a/b).toFixed(2);
-    }
-}
-
-for(let i=0; i<=15; i++){
-    const button = document.createElement('button');
-    button.addEventListener("click", fillingDisplay)
-    button.textContent = buttonTextContent[i];
-    // Can add a ifs to clange style of operands, clear, equal and other... (remember to add later)
-    button.classList.add('button');
-    buttons.appendChild(button);
+  "+": (a, b) => a + b,
+  "-": (a, b) => a - b,
+  "*": (a, b) => a * b,
+  "/": (a, b) => (b === 0 ? "Error" : a / b),
 };
 
-function fillingDisplay(e){
-    if (e.target.textContent === 'CLEAR') {
-        display.textContent = '';
-        return
-    }
-    if (e.target.textContent === '='){
-        const userInput = display.textContent;
-        let userInputArray = userInput.match(/\d+(\.\d+)?|[+\-*/]/g)
-        .map(v => isNaN(v) ? v : Number(v));
-        firstNum = userInputArray [0];
-        operand = userInputArray [1];
-        secondNum = userInputArray [2];
-        display.textContent = executeOperation (firstNum,operand,secondNum);
-        userInputArray = [];         
-        return 
-    } 
-    display.textContent += e.target.textContent
+/* ------------------ BUTTON CREATION ------------------ */
+
+buttonTextContent.forEach((text) => {
+  const button = document.createElement("button");
+  button.textContent = text;
+  button.classList.add("button");
+  if (["+", "-", "*", "/"].includes(text)) {
+    button.classList.add("operator");
+  } else if (text === "=") {
+    button.classList.add("equals");
+  } else if (text === "CLEAR") {
+    button.classList.add("clear");
+  } else {
+    button.classList.add("number");
+  }
+  buttons.appendChild(button);
+});
+
+/* ------------------ EVENT LISTENERS ------------------ */
+
+buttons.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!target.matches("button")) return;
+
+  const buttonText = target.textContent;
+  
+  if (target.classList.contains("operator")) {
+    handleOperator(buttonText);
+    return;
+  }
+
+  if (target.classList.contains("equals")) {
+    handleEquals();
+    return;
+  }
+
+  if (target.classList.contains("clear")) {
+    handleClear();
+    return;
+  }
+
+  handleDigit(buttonText);
+});
+
+/* ------------------ HANDLERS ------------------ */
+
+function handleDigit(digit) {
+  const { displayValue, waitingForSecondNum } = state;
+
+  if (waitingForSecondNum) {
+    state.displayValue = digit;
+    state.waitingForSecondNum = false;
+  } else {
+    state.displayValue =
+      displayValue === "0" ? digit : displayValue + digit;
+  }
+  updateDisplay();
 }
 
-function executeOperation (a,operator,b) {
-    const method = operatorMap[operator];
-    const solution = operations[method](a,b);
-    return solution;
+function handleOperator(nextOperand) {
+  const { firstNum, displayValue, operand } = state;
+  const inputValue = parseFloat(displayValue);
+
+  if (operand && state.waitingForSecondNum) {
+    state.operand = nextOperand;
+    return;
+  }
+
+  if (firstNum === null) {
+    state.firstNum = inputValue;
+  } else if (operand) {
+    const result = operations[operand](firstNum, inputValue);
+    state.displayValue = `${parseFloat(result.toFixed(7))}`;
+    state.firstNum = result;
+  }
+
+  state.waitingForSecondNum = true;
+  state.operand = nextOperand;
+  updateDisplay();
 }
+
+function handleEquals() {
+    const { firstNum, displayValue, operand } = state;
+    const inputValue = parseFloat(displayValue);
+
+    if (operand && !state.waitingForSecondNum) {
+        const result = operations[operand](firstNum, inputValue);
+        state.displayValue = `${parseFloat(result.toFixed(7))}`;
+        state.firstNum = result;
+        state.waitingForSecondNum = true; 
+        state.operand = null;
+        updateDisplay();
+    }
+}
+
+function handleClear() {
+  state.displayValue = "0";
+  state.firstNum = null;
+  state.waitingForSecondNum = false;
+  state.operand = null;
+  updateDisplay();
+}
+
+/* ------------------ DISPLAY ------------------ */
+
+function updateDisplay() {
+  display.textContent = state.displayValue;
+}
+
+// Initialize display
+updateDisplay();
